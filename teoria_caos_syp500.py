@@ -78,6 +78,36 @@ def exponente_lyapunov(x0, r, iteraciones):
     return lyap / iteraciones
 
 
+def exponente_lyapunov_real(df, iteraciones=100):
+    precios = df["Adj Close"].values
+    # Calcular diferencias logarítmicas de los precios
+    delta_precio = np.diff(np.log(precios))
+    
+    # Verificar que tenemos suficientes datos
+    if len(delta_precio) < iteraciones:
+        print("Advertencia: No hay suficientes datos para el número de iteraciones solicitadas.")
+        iteraciones = len(delta_precio)
+    
+    lyap = 0
+    valid_iteraciones = 0
+
+    for i in range(1, iteraciones):
+        # Verificar que el valor anterior no sea 0 para evitar división por cero
+        if delta_precio[i - 1] != 0:
+            crecimiento = np.abs(delta_precio[i] / delta_precio[i - 1])
+
+            if crecimiento > 0:
+                lyap += np.log(crecimiento)
+                valid_iteraciones += 1
+    
+    # Promediar el exponente de Lyapunov solo sobre las iteraciones válidas
+    return lyap / valid_iteraciones if valid_iteraciones > 0 else float('nan')
+
+# Calcular el exponente de Lyapunov con los precios reales
+lyap_real = exponente_lyapunov_real(df, iteraciones=100)
+print(f"Exponente de Lyapunov (precios reales): {lyap_real}")
+
+
 # ---------------------------------------Simulación y predicción---------------------------------------
 # Simulación de la variación diaria del índice
 # Aplicar la simulación para todas las variaciones
